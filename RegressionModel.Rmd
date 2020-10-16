@@ -1,0 +1,101 @@
+---
+title: "Regression Model Project"
+author: "Expedito Pinto de Paula Junior"
+date: "10/16/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Summary
+
+Motor Trend Magazine about the automobile industry are looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+1. **"Is an automatic or manual transmission better for MPG?"**
+2. **"Quantify the MPG difference between automatic and manual transmissions?"**
+
+# 2. Exploratory Data Analysis
+
+## 2.1 Load Libraries and Data Set
+```{r load}
+library(datasets)
+library(ggplot2)
+data("mtcars")
+```
+
+## 2.2 Basic Exploratory Data Analysis
+```{r basics}
+# Sample Data
+head(mtcars)
+
+# Variables
+str(mtcars)
+
+# summary
+summary(mtcars)
+```
+
+## 2.3 Automatic x Manual Transmission
+
+```{r automaticXmanual}
+mtcars$am <- as.factor(mtcars$am)
+
+ggplot(aes(x=am, y=mpg), data=mtcars) + 
+     geom_boxplot(aes(fill=am)) + 
+     labs(title = "Automatic x Manual Transmission") + 
+     xlab("Transmission") + 
+     ylab("mpg") + 
+     labs(fill="0=Automatic, 1=Manual")
+```
+
+The plot above indicates that manual transmission provide better mileage per galon than the automatics. 
+
+```{r t-Test}
+AutomaticT <- mtcars[mtcars$am == "0",]
+ManualT <- mtcars[mtcars$am == "1",]
+t.test(AutomaticT$mpg, ManualT$mpg)
+```
+
+The hypothesis test performed rejects the null hypothesis that the transmission type is in fact significantly correlateed to mileage per gallon (mpg).
+
+# 3.Regression Models
+
+## 3.1 Linear Regression Model
+```{r linearRM}
+lmModel <- lm(mpg ~ am, data=mtcars)
+summary(lmModel)
+```
+
+The linear regression shows how much transmission type affect mpg performance. Specifically manual transmissions provide 7.25 MPG better performance than automatics. But, based in R-squares value, transmission types only explain 36% of the MPG performance, based on this a simple linear regression is not enought to answer the Motor Trend's questions.
+
+## 3.2 Multivariable Regression Model
+```{r mVariable}
+mModel <- lm(mpg ~ am + cyl + hp + wt, data = mtcars)
+anova(lmModel, mModel)
+summary(mModel)
+```
+
+The multivariable regression model (MRM) includes other factors (variables) that most likely affect a vehicle's including number of cylinders, engine horsepower, vehicle weight and others. The MRM shows that:
+
+1. Each 1.48 MPG increase from manual transmission over automatic.
+2. The multivariable model explain 85% of the MPG performance.
+
+# 4. Conclusions
+
+1. **"Is an automatic or manual transmission better for MPG?"**
+A: Based in MPG, manual transmission perform better than automatic.
+
+2. **"Quantify the MPG difference between automatic and manual transmissions?"**
+A: In the first model, manual transmission perform better than automatic by 7.25 MPG, however this factor explain only 36% of the relation. When measure MPG adding cylinders, horsepower and weight variable, the manual transmission provide an additional 1.48 MPG of performance over automatic accounting 85% of the relation explanation. 
+
+# 5. Appendix
+
+As appendix is showed a pairs plot based in mpg and residual from multivariable regression model.
+
+```{r PairsAndResidual}
+pairs(mpg ~ ., data = mtcars)
+par(mfrow = c(2,2))
+plot(mModel)
+```
